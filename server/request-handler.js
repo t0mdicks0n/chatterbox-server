@@ -1,3 +1,6 @@
+var dataBase = {
+  results: []
+};
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -21,6 +24,10 @@ var requestHandler = function(request, response) {
   //
   // Documentation for both request and response can be found in the HTTP section at
   // http://nodejs.org/documentation/api/
+  if (request.url !== '/classes/messages') {
+    response.writeHead(404, headers)
+    response.end();
+  }
 
   // Do some basic logging.
   //
@@ -34,17 +41,30 @@ var requestHandler = function(request, response) {
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
 
+
+  var serverResponse = {};
+
+  if (request.method === 'GET') {
+    // get data from our storage
+    // return the data 
+    serverResponse.results = dataBase.results;
+
+  } else if (request.method === 'POST') {    
+    request.on('data', function(data) {
+      dataBase.results.push(JSON.parse(data.toString('utf-8')));
+    });
+    statusCode = 201;
+  }
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
   headers['Content-Type'] = 'text/plain';
 
-  response.writeHead('wazzup!');
-
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
   response.writeHead(statusCode, headers);
+
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -53,7 +73,7 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end('Hello, Oliver!');
+  response.end(JSON.stringify(serverResponse));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
