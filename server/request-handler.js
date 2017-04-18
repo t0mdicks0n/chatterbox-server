@@ -1,6 +1,15 @@
-var dataBase = {
-  results: []
-};
+// var dataBase = {
+//   results: []
+// };
+var dataId = 0;
+
+var fs = require('fs');
+
+var readDatabase = function () {
+  return fs.readFileSync('./db.json', 'utf8');
+}
+
+
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -16,6 +25,7 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 
 var requestHandler = function(request, response) {
+
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -25,7 +35,7 @@ var requestHandler = function(request, response) {
   // Documentation for both request and response can be found in the HTTP section at
   // http://nodejs.org/documentation/api/
   if (request.url !== '/classes/messages') {
-    response.writeHead(404, headers)
+    response.writeHead(404, headers);
     response.end();
   }
 
@@ -47,13 +57,28 @@ var requestHandler = function(request, response) {
   if (request.method === 'GET') {
     // get data from our storage
     // return the data 
-    serverResponse.results = dataBase.results;
+    serverResponse = JSON.parse(readDatabase());
 
   } else if (request.method === 'POST') {    
     request.on('data', function(data) {
-      dataBase.results.push(JSON.parse(data.toString('utf-8')));
+      var newData = JSON.parse(data.toString('utf-8'));
+      newData.objectId = Math.random();
+
+      var currentDb = JSON.parse(readDatabase());
+      console.log(currentDb);
+      currentDb.results.push(newData);
+
+      fs.writeFile("./db.json", JSON.stringify(currentDb), function(err) {
+          if(err) {
+              return console.log(err);
+          }
+
+          console.log("The file was saved!");
+      }); 
+
     });
     statusCode = 201;
+
   }
   // Tell the client we are sending them plain text.
   //
